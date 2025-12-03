@@ -34,4 +34,4 @@ $ bin/migrate apply <database_path>
 
 - `MIGRATIONS_DIR`: The directory where migration files are stored. Defaults to `migrations/`.
 - `SCHEMA_VERSION_TABLE`: The name of the table used to track schema versions. Defaults to `schema_version`.
-- `SCHEMA_DUMP_FILE`: If set, the full database schema will be dumped to this file path after migrations are applied. Defaults to `./schema.sql`.
+- `SCHEMA_DUMP_FILE`: The file path where the full database schema is dumped after migrations are applied. Defaults to `./schema.sql`. To disable, set this to `/dev/null`.

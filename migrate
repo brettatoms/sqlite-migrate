@@ -104,11 +104,9 @@ apply_migrations() {
 
     if [[ "$migrations_applied" -eq 1 ]]; then
         echo "All pending migrations have been applied."
-        if [[ -n "${SCHEMA_DUMP_FILE-}" ]]; then
-            echo "Dumping schema to $SCHEMA_DUMP_FILE"
-            sqlite3 "$db_path" '.schema' > "$SCHEMA_DUMP_FILE"
-            echo "Schema dumped successfully."
-        fi
+        echo "Dumping schema to $SCHEMA_DUMP_FILE"
+        sqlite3 "$db_path" '.schema' > "$SCHEMA_DUMP_FILE"
+        echo "Schema dumped successfully."
     else
         echo "Database is already up to date."
     fi

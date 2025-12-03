@@ -25,7 +25,7 @@ The script is executed via the `bin/migrate` command, which takes a subcommand.
 ### Subcommands
 
 -   `create <name>`: Creates a new migration file with a timestamp prefix in the migrations directory.
--   `apply <db_path>`: Applies all pending migrations to the specified SQLite database file.
+-   `apply <db_path>`: Applies all pending migrations to the specified SQLite database file. After migrations are applied, the full database schema is dumped to the file specified by the `SCHEMA_DUMP_FILE` environment variable.
 
 ### Environment Variables
 
@@ -35,8 +35,13 @@ The script's behavior can be configured with the following environment variables
     -   **Default:** `migrations/`
 -   `SCHEMA_VERSION_TABLE`: The name of the table used to track the current schema version.
     -   **Default:** `schema_version`
-- `SCHEMA_DUMP_FILE`: If set, the full database schema will be dumped to this file path after migrations are successfully applied.
+- `SCHEMA_DUMP_FILE`: The file path to dump the full database schema to after migrations are successfully applied.
     -   **Default:** `./schema.sql`
+
+> [!TIP]
+> To disable dumping the schema to a file, you can set `SCHEMA_DUMP_FILE` to `/dev/null`. For example:
+> `SCHEMA_DUMP_FILE=/dev/null ./bin/migrate apply my_app.db`
+
 
 ## Examples
 
@@ -82,16 +87,4 @@ Current database version: 1678886400
 Database is already up to date.
 ```
 
-### 3. Dumping the Schema
 
-To automatically dump the database schema to a file after applying migrations, set the `SCHEMA_DUMP_FILE` environment variable.
-
-```bash
-$ SCHEMA_DUMP_FILE=./schema.sql ./bin/migrate apply my_app.db
-Current database version: 1678886400
-Applying migration: 1678886401_add_products_table.sql
-Successfully applied migration version 1678886401
-All pending migrations have been applied.
-Dumping schema to ./schema.sql
-Schema dumped successfully.
-```
