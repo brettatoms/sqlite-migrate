@@ -85,14 +85,12 @@ apply_migrations() {
             echo "Applying migration: $filename"
 
             # Apply migration and update version in a single transaction
-            (
+            if (
                 echo "BEGIN TRANSACTION;"
                 cat "$migration_file"
                 echo "UPDATE \"$SCHEMA_VERSION_TABLE\" SET version = '$version';"
                 echo "COMMIT;"
-            ) | sqlite3 "$db_path"
-
-            if [[ $? -eq 0 ]]; then
+            ) | sqlite3 "$db_path"; then
                 echo "Successfully applied migration version $version"
                 current_version="$version" # Update current version for the next iteration
             else
@@ -130,10 +128,12 @@ create_migration() {
     local filepath="$MIGRATIONS_DIR/$filename"
 
     # Create the migration file with a placeholder comment
-    echo "-- Migration: $name" > "$filepath"
-    echo "-- Version: $timestamp" >> "$filepath"
-    echo "" >> "$filepath"
-    echo "-- Add your SQL statements here" >> "$filepath"
+    {
+        echo "-- Migration: $name"
+        echo "-- Version: $timestamp"
+        echo ""
+        echo "-- Add your SQL statements here"
+    } > "$filepath"
 
     echo "Created new migration file: $filepath"
 }
