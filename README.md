@@ -12,7 +12,7 @@ This script provides a straightforward way to version your SQLite database schem
 -   **Simple and Focused:** The script is intentionally simple. It supports one-way migrations (upgrades) and creating new migration files.
 -   **SQLite Only:** It is designed specifically for SQLite and uses the `sqlite3` command-line tool.
 -   **Forward-Only Migrations:** There is no support for rollbacks or downgrades. This keeps the logic simple and predictable.
--   **Timestamp-based Ordering:** Migrations are ordered based on a Unix timestamp prefix in the filename, ensuring they are applied in the order they were created.
+-   **Timestamp-based Ordering:** Migrations are ordered based on a timestamp prefix (`YYYYMMDDHHmmss`) in the filename, ensuring they are applied in the order they were created.
 
 ## Usage
 
@@ -51,15 +51,15 @@ To create a new migration file, use the `create` subcommand.
 
 ```bash
 $ ./bin/migrate.sh create add_users_table
-Created new migration file: migrations/1678886400_add_users_table.sql
+Created new migration file: migrations/20231015120000_add_users_table.sql
 ```
 
 You can then add your SQL statements to the generated file:
 
 ```sql
--- migrations/1678886400_add_users_table.sql
+-- migrations/20231015120000_add_users_table.sql
 -- Migration: add_users_table
--- Version: 1678886400
+-- Version: 20231015120000
 
 CREATE TABLE users (
     id INTEGER PRIMARY KEY,
@@ -74,8 +74,8 @@ To apply pending migrations to your database, use the `apply` subcommand.
 ```bash
 $ ./bin/migrate.sh apply my_app.db
 Current database version: 0
-Applying migration: 1678886400_add_users_table.sql
-Successfully applied migration version 1678886400
+Applying migration: 20231015120000_add_users_table.sql
+Successfully applied migration version 20231015120000
 All pending migrations have been applied.
 ```
 
@@ -83,7 +83,7 @@ If the database is already up to date, no action will be taken:
 
 ```bash
 $ ./bin/migrate.sh apply my_app.db
-Current database version: 1678886400
+Current database version: 20231015120000
 Database is already up to date.
 ```
 

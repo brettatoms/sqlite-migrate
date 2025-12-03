@@ -53,7 +53,7 @@ apply_migrations() {
     fi
 
     # Ensure sqlite3 is available
-    if ! command -v sqlite3 &> /dev/null; then
+    if ! command -v sqlite3 &>/dev/null; then
         echo "Error: sqlite3 command not found. Please install it."
         exit 1
     fi
@@ -69,8 +69,8 @@ apply_migrations() {
     migrations=$(find "$MIGRATIONS_DIR" -maxdepth 1 -name "*.sql" | sort -V)
 
     if [[ -z "$migrations" ]]; then
-      echo "No migration files found in $MIGRATIONS_DIR."
-      exit 0
+        echo "No migration files found in $MIGRATIONS_DIR."
+        exit 0
     fi
 
     for migration_file in $migrations; do
@@ -103,7 +103,7 @@ apply_migrations() {
     if [[ "$migrations_applied" -eq 1 ]]; then
         echo "All pending migrations have been applied."
         echo "Dumping schema to $SCHEMA_DUMP_FILE"
-        sqlite3 "$db_path" '.schema' > "$SCHEMA_DUMP_FILE"
+        sqlite3 "$db_path" '.dump' >"$SCHEMA_DUMP_FILE"
         echo "Schema dumped successfully."
     else
         echo "Database is already up to date."
@@ -120,7 +120,7 @@ create_migration() {
     fi
 
     local timestamp
-    timestamp=$(date +%s)
+    timestamp=$(date +%Y%m%d%H%M%S)
     local safe_name
     safe_name=$(echo "$name" | tr '[:upper:]' '[:lower:]' | tr -s ' ' '_' | sed 's/[^a-z0-9_]//g')
 
@@ -133,11 +133,10 @@ create_migration() {
         echo "-- Version: $timestamp"
         echo ""
         echo "-- Add your SQL statements here"
-    } > "$filepath"
+    } >"$filepath"
 
     echo "Created new migration file: $filepath"
 }
-
 
 main() {
     if [[ $# -lt 1 ]]; then
@@ -148,24 +147,24 @@ main() {
     shift
 
     case "$subcommand" in
-        apply)
-            if [[ $# -ne 1 ]]; then
-                echo "Error: 'apply' command requires a <db_path> argument."
-                usage
-            fi
-            apply_migrations "$1"
-            ;;
-        create)
-            if [[ $# -ne 1 ]]; then
-                echo "Error: 'create' command requires a <name> argument."
-                usage
-            fi
-            create_migration "$1"
-            ;;
-        *)
-            echo "Error: Unknown subcommand '$subcommand'"
+    apply)
+        if [[ $# -ne 1 ]]; then
+            echo "Error: 'apply' command requires a <db_path> argument."
             usage
-            ;;
+        fi
+        apply_migrations "$1"
+        ;;
+    create)
+        if [[ $# -ne 1 ]]; then
+            echo "Error: 'create' command requires a <name> argument."
+            usage
+        fi
+        create_migration "$1"
+        ;;
+    *)
+        echo "Error: Unknown subcommand '$subcommand'"
+        usage
+        ;;
     esac
 }
 
