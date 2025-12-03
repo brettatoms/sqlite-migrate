@@ -10,7 +10,7 @@ This repository contains a simple, dependency-free bash script for managing SQLi
 
 ## Key Files
 
-- `bin/migrate`: The main executable script.
+- `bin/migrate.sh`: The main executable script.
 
 ## Common Commands
 
@@ -20,14 +20,14 @@ The script uses subcommands to perform actions.
 
 ```bash
 # Creates a new migration file in the directory specified by $MIGRATIONS_DIR (default: migrations/)
-$ bin/migrate create <migration_name>
+$ bin/migrate.sh create <migration_name>
 ```
 
 ### Apply Migrations
 
 ```bash
 # Applies all pending migrations to the specified database.
-$ bin/migrate apply <database_path>
+$ bin/migrate.sh apply <database_path>
 ```
 
 ### Environment Variables

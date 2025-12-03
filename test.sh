@@ -43,7 +43,7 @@ trap cleanup EXIT
 # Test: 'create' subcommand
 echo ""
 echo "--- Testing 'create' subcommand ---"
-./migrate create "create_users_table"
+./migrate.sh create "create_users_table"
 
 MIGRATION_FILE=$(find "$MIGRATIONS_DIR" -name "*_create_users_table.sql" | head -n 1)
 assert_equals "1" "$(find "$MIGRATIONS_DIR" -name "*_create_users_table.sql" | wc -l | tr -d ' ')" "A single migration file should be created"
@@ -56,7 +56,7 @@ echo "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);" > "$MIGRATION_FIL
 echo ""
 echo "--- Testing 'apply' subcommand ---"
 touch "$DB_PATH"
-./migrate apply "$DB_PATH"
+./migrate.sh apply "$DB_PATH"
 
 # Check schema version
 VERSION=$(sqlite3 "$DB_PATH" "SELECT version FROM schema_version;")

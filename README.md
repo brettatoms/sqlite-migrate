@@ -16,10 +16,10 @@ This script provides a straightforward way to version your SQLite database schem
 
 ## Usage
 
-The script is executed via the `bin/migrate` command, which takes a subcommand.
+The script is executed via the `bin/migrate.sh` command, which takes a subcommand.
 
 ```
-./bin/migrate <subcommand> [options]
+./bin/migrate.sh <subcommand> [options]
 ```
 
 ### Subcommands
@@ -40,7 +40,7 @@ The script's behavior can be configured with the following environment variables
 
 > [!TIP]
 > To disable dumping the schema to a file, you can set `SCHEMA_DUMP_FILE` to `/dev/null`. For example:
-> `SCHEMA_DUMP_FILE=/dev/null ./bin/migrate apply my_app.db`
+> `SCHEMA_DUMP_FILE=/dev/null ./bin/migrate.sh apply my_app.db`
 
 
 ## Examples
@@ -50,7 +50,7 @@ The script's behavior can be configured with the following environment variables
 To create a new migration file, use the `create` subcommand.
 
 ```bash
-$ ./bin/migrate create add_users_table
+$ ./bin/migrate.sh create add_users_table
 Created new migration file: migrations/1678886400_add_users_table.sql
 ```
 
@@ -72,7 +72,7 @@ CREATE TABLE users (
 To apply pending migrations to your database, use the `apply` subcommand.
 
 ```bash
-$ ./bin/migrate apply my_app.db
+$ ./bin/migrate.sh apply my_app.db
 Current database version: 0
 Applying migration: 1678886400_add_users_table.sql
 Successfully applied migration version 1678886400
@@ -82,7 +82,7 @@ All pending migrations have been applied.
 If the database is already up to date, no action will be taken:
 
 ```bash
-$ ./bin/migrate apply my_app.db
+$ ./bin/migrate.sh apply my_app.db
 Current database version: 1678886400
 Database is already up to date.
 ```
