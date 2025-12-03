@@ -22,6 +22,33 @@ usage() {
     exit 1
 }
 
+dump_schema() {
+    local db_path="$1"
+    local version="$2"
+
+    # Dump schema from sqlite_master, excluding:
+    # 1. sqlite_* internal tables
+    # 2. Shadow tables created by virtual tables (FTS3/4/5, R-Tree)
+    sqlite3 "$db_path" "
+SELECT sql || ';' FROM sqlite_master
+WHERE sql IS NOT NULL
+  AND name NOT LIKE 'sqlite_%'
+  AND name NOT IN (
+    SELECT vt.name || '_' || s.suffix
+    FROM (SELECT name FROM sqlite_master WHERE sql LIKE 'CREATE VIRTUAL TABLE%') vt
+    CROSS JOIN (
+      SELECT 'content' AS suffix UNION ALL SELECT 'data' UNION ALL SELECT 'docsize'
+      UNION ALL SELECT 'idx' UNION ALL SELECT 'config' UNION ALL SELECT 'segments'
+      UNION ALL SELECT 'segdir' UNION ALL SELECT 'stat' UNION ALL SELECT 'node'
+      UNION ALL SELECT 'parent' UNION ALL SELECT 'rowid'
+    ) s
+  )
+ORDER BY CASE type WHEN 'table' THEN 1 WHEN 'index' THEN 2 WHEN 'trigger' THEN 3 WHEN 'view' THEN 4 END;
+"
+    # Add INSERT for schema version so loading this schema marks the database as migrated
+    echo "INSERT INTO \"$SCHEMA_VERSION_TABLE\" (version) VALUES ('$version');"
+}
+
 init_schema_version_table() {
     local db_path="$1"
 
@@ -103,7 +130,7 @@ apply_migrations() {
     if [[ "$migrations_applied" -eq 1 ]]; then
         echo "All pending migrations have been applied."
         echo "Dumping schema to $SCHEMA_DUMP_FILE"
-        sqlite3 "$db_path" '.dump' >"$SCHEMA_DUMP_FILE"
+        dump_schema "$db_path" "$current_version" >"$SCHEMA_DUMP_FILE"
         echo "Schema dumped successfully."
     else
         echo "Database is already up to date."

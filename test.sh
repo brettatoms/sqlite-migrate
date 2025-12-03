@@ -72,5 +72,32 @@ assert_equals "1" "$(test -f "$SCHEMA_DUMP_FILE" && echo 1)" "Schema dump file s
 DUMP_CONTENT=$(cat "$SCHEMA_DUMP_FILE")
 assert_equals "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);" "$(echo "$DUMP_CONTENT" | grep "CREATE TABLE users")" "Schema dump should contain the 'users' table"
 
+# Test: Schema dump excludes shadow tables and includes version INSERT
+echo ""
+echo "--- Testing schema dump excludes shadow tables ---"
+
+# Create a migration with an FTS5 virtual table (use timestamp 1 second later to ensure ordering)
+NEXT_TIMESTAMP=$((MIGRATION_VERSION + 1))
+FTS_MIGRATION_FILE="$MIGRATIONS_DIR/${NEXT_TIMESTAMP}_add_search.sql"
+cat > "$FTS_MIGRATION_FILE" << 'EOF'
+CREATE VIRTUAL TABLE search_idx USING fts5(content);
+EOF
+
+./migrate.sh apply "$DB_PATH"
+
+# Verify FTS5 shadow tables exist in the database but not in the dump
+FTS_SHADOW_TABLES=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM sqlite_master WHERE name LIKE 'search_idx_%';")
+assert_equals "1" "$(test "$FTS_SHADOW_TABLES" -gt 0 && echo 1)" "FTS5 shadow tables should exist in database"
+
+DUMP_CONTENT=$(cat "$SCHEMA_DUMP_FILE")
+SHADOW_IN_DUMP=$(echo "$DUMP_CONTENT" | grep -c "search_idx_" || true)
+assert_equals "0" "$SHADOW_IN_DUMP" "Schema dump should NOT contain FTS5 shadow tables"
+
+# Verify the virtual table itself IS in the dump
+assert_equals "1" "$(echo "$DUMP_CONTENT" | grep -c "CREATE VIRTUAL TABLE search_idx" || true)" "Schema dump should contain the FTS5 virtual table"
+
+# Verify schema version INSERT is in the dump
+assert_equals "1" "$(echo "$DUMP_CONTENT" | grep -c "INSERT INTO \"schema_version\".*$NEXT_TIMESTAMP" || true)" "Schema dump should contain INSERT for schema version"
+
 echo ""
 echo "--- All tests passed! ---"
