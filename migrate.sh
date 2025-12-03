@@ -24,7 +24,6 @@ usage() {
 
 dump_schema() {
     local db_path="$1"
-    local version="$2"
 
     # Dump schema from sqlite_master, excluding:
     # 1. sqlite_* internal tables
@@ -45,8 +44,8 @@ WHERE sql IS NOT NULL
   )
 ORDER BY CASE type WHEN 'table' THEN 1 WHEN 'index' THEN 2 WHEN 'trigger' THEN 3 WHEN 'view' THEN 4 END;
 "
-    # Add INSERT for schema version so loading this schema marks the database as migrated
-    echo "INSERT INTO \"$SCHEMA_VERSION_TABLE\" (version) VALUES ('$version');"
+    # Add INSERTs for all schema versions so loading this schema marks the database as migrated
+    sqlite3 "$db_path" "SELECT 'INSERT INTO \"$SCHEMA_VERSION_TABLE\" (version) VALUES (''' || version || ''');' FROM \"$SCHEMA_VERSION_TABLE\" ORDER BY version;"
 }
 
 init_schema_version_table() {
@@ -54,15 +53,6 @@ init_schema_version_table() {
 
     # Create the schema version table if it doesn't exist
     sqlite3 "$db_path" "CREATE TABLE IF NOT EXISTS \"$SCHEMA_VERSION_TABLE\" (version TEXT NOT NULL);"
-
-    # Check if a version is present
-    local count
-    count=$(sqlite3 "$db_path" "SELECT COUNT(*) FROM \"$SCHEMA_VERSION_TABLE\";")
-
-    # If no version is present, insert initial version '0'
-    if [[ "$count" -eq 0 ]]; then
-        sqlite3 "$db_path" "INSERT INTO \"$SCHEMA_VERSION_TABLE\" (version) VALUES ('0');"
-    fi
 }
 
 apply_migrations() {
@@ -88,7 +78,7 @@ apply_migrations() {
     init_schema_version_table "$db_path"
 
     local current_version
-    current_version=$(sqlite3 "$db_path" "SELECT version FROM \"$SCHEMA_VERSION_TABLE\" LIMIT 1;")
+    current_version=$(sqlite3 "$db_path" "SELECT COALESCE(MAX(version), '0') FROM \"$SCHEMA_VERSION_TABLE\";")
     echo "Current database version: $current_version"
 
     # Find, sort, and loop through migration files
@@ -115,7 +105,7 @@ apply_migrations() {
             if (
                 echo "BEGIN TRANSACTION;"
                 cat "$migration_file"
-                echo "UPDATE \"$SCHEMA_VERSION_TABLE\" SET version = '$version';"
+                echo "INSERT INTO \"$SCHEMA_VERSION_TABLE\" (version) VALUES ('$version');"
                 echo "COMMIT;"
             ) | sqlite3 "$db_path"; then
                 echo "Successfully applied migration version $version"
@@ -130,7 +120,7 @@ apply_migrations() {
     if [[ "$migrations_applied" -eq 1 ]]; then
         echo "All pending migrations have been applied."
         echo "Dumping schema to $SCHEMA_DUMP_FILE"
-        dump_schema "$db_path" "$current_version" >"$SCHEMA_DUMP_FILE"
+        dump_schema "$db_path" >"$SCHEMA_DUMP_FILE"
         echo "Schema dumped successfully."
     else
         echo "Database is already up to date."
