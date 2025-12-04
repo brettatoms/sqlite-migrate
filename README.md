@@ -9,9 +9,9 @@ This script provides a straightforward way to version your SQLite database schem
 
 ## What it does (and doesn't do)
 
--   **Simple and Focused:** The script is intentionally simple. It supports one-way migrations (upgrades) and creating new migration files.
+-   **Simple and Focused:** The script is intentionally simple.  It only supports applying all of the migrations and creating new migration files.
 -   **SQLite Only:** It is designed specifically for SQLite and uses the `sqlite3` command-line tool.
--   **Forward-Only Migrations:** There is no support for rollbacks or downgrades. This keeps the logic simple and predictable.
+-   **Forward-Only Migrations:** There is no support for rollbacks or downgrades.
 -   **Timestamp-based Ordering:** Migrations are ordered based on a timestamp prefix (`YYYYMMDDHHmmss`) in the filename, ensuring they are applied in the order they were created.
 
 ## Usage
@@ -86,5 +86,3 @@ $ ./bin/migrate.sh apply my_app.db
 Current database version: 20231015120000
 Database is already up to date.
 ```
-
-
