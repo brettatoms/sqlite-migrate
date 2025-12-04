@@ -63,6 +63,10 @@ VERSION=$(sqlite3 "$DB_PATH" "SELECT version FROM schema_version;")
 MIGRATION_VERSION=$(basename "$MIGRATION_FILE" | cut -d'_' -f1)
 assert_equals "$MIGRATION_VERSION" "$VERSION" "Database schema version should be updated"
 
+# Check applied_at timestamp
+APPLIED_AT=$(sqlite3 "$DB_PATH" "SELECT applied_at FROM schema_version;")
+assert_equals "1" "$(echo "$APPLIED_AT" | grep -cE '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$')" "applied_at should be a valid timestamp"
+
 # Check if the table was created
 TABLE_EXISTS=$(sqlite3 "$DB_PATH" "SELECT name FROM sqlite_master WHERE type='table' AND name='users';")
 assert_equals "users" "$TABLE_EXISTS" "The 'users' table should exist"

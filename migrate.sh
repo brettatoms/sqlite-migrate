@@ -45,14 +45,14 @@ WHERE sql IS NOT NULL
 ORDER BY CASE type WHEN 'table' THEN 1 WHEN 'index' THEN 2 WHEN 'trigger' THEN 3 WHEN 'view' THEN 4 END;
 "
     # Add INSERTs for all schema versions so loading this schema marks the database as migrated
-    sqlite3 "$db_path" "SELECT 'INSERT INTO \"$SCHEMA_VERSION_TABLE\" (version) VALUES (''' || version || ''');' FROM \"$SCHEMA_VERSION_TABLE\" ORDER BY version;"
+    sqlite3 "$db_path" "SELECT 'INSERT INTO \"$SCHEMA_VERSION_TABLE\" (version, applied_at) VALUES (''' || version || ''', ''' || applied_at || ''');' FROM \"$SCHEMA_VERSION_TABLE\" ORDER BY version;"
 }
 
 init_schema_version_table() {
     local db_path="$1"
 
     # Create the schema version table if it doesn't exist
-    sqlite3 "$db_path" "CREATE TABLE IF NOT EXISTS \"$SCHEMA_VERSION_TABLE\" (version TEXT NOT NULL);"
+    sqlite3 "$db_path" "CREATE TABLE IF NOT EXISTS \"$SCHEMA_VERSION_TABLE\" (version TEXT NOT NULL, applied_at TEXT DEFAULT CURRENT_TIMESTAMP);"
 }
 
 apply_migrations() {
