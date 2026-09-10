@@ -8,6 +8,10 @@ set -euo pipefail
 # Default schema dump file path, can be overridden by environment variable
 : "${SCHEMA_DUMP_FILE:=./schema.sql}"
 
+# Fix loading extensions libraries on MacOS. This works around the DYLD_LIBRARY_PATH on
+# MacOS not being inherited by child processes.
+export DYLD_LIBRARY_PATH=$LD_LIBRARY_PATH
+
 usage() {
     echo "Usage: $0 <subcommand> [options]"
     echo ""
