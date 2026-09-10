@@ -10,7 +10,7 @@ set -euo pipefail
 
 # Fix loading extensions libraries on MacOS. This works around the DYLD_LIBRARY_PATH on
 # MacOS not being inherited by child processes.
-export DYLD_LIBRARY_PATH=$LD_LIBRARY_PATH
+export DYLD_LIBRARY_PATH="{$LD_LIBRARY_PATH}"
 
 usage() {
     echo "Usage: $0 <subcommand> [options]"
